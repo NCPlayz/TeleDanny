@@ -64,6 +64,20 @@ def tag_create(ctx: Context):
             tags[name] = ' '.join(content)
             ctx.send(f'Tag {name} successfully created.')
 
+@bot.command(owner_only=True)
+def tag_delete(ctx: Context):
+    if not ctx.args:
+        return
+    
+
+    toDelete = ctx.args[0]
+
+    if toDelete not in tags:
+        ctx.send('Tag not found.')
+    else:
+        tags.pop(toDelete)
+        ctx.send(f'Tag {toDelete} successfully deleted.')
+
 @bot.command()
 def choose(ctx: Context):
     choices = ctx.args
@@ -88,7 +102,7 @@ def codeblock(ctx: Context):
             font_size=24,
             style=ParaisoDarkStyle,
             line_number_bg=0x261825,
-            font_name="JetBrains Mono",
+            font_name="JetBrains Mono Regular",
         )
 
         file = io.BytesIO()
