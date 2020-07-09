@@ -1,8 +1,16 @@
 import random
+import re
+import io
 
 from framework import Bot, Context
 
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name, ClassNotFound
+from pygments.formatters.img import ImageFormatter
+
 from config import token, owners
+
+CODEBLOCK_REGEX = re.compile(r'/codeblock (\w+)((?:.|\n)+)')
 
 bot = Bot(token=token, owners=owners)
 
@@ -54,5 +62,29 @@ def choose(ctx: Context):
     choices = ctx.args
     chosen = random.choice(choices)
     ctx.send(f'```{chosen}```', markdown=True)
+
+@bot.command()
+def codeblock(ctx: Context):
+    content = ctx.content
+    if not content:
+        return ctx.send('Content not found.')
+
+    match = CODEBLOCK_REGEX.search(content)
+
+    if match:
+        try:
+            lexer = get_lexer_by_name(match.group(1), stripall=True)
+        except ClassNotFound:
+            return ctx.send('Language could not be recognised.')
+
+        formatter = ImageFormatter(image_format="PNG")
+
+        file = io.BytesIO()
+        result = highlight(match.group(2), lexer, formatter, outfile=file)
+
+        file.seek(0)
+        ctx.send(photo=file)
+    else:
+        return ctx.send('Could not recognise content.')
 
 bot.run()

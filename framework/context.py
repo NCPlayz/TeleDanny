@@ -15,9 +15,10 @@ class Context:
         self.channel: Chat = update.effective_chat
         self.user: User = update.effective_user
         self.args: typing.List[str] = context.args
+        self.content: str = self.message.text if self.message else None
         self.me: Bot = context.bot
     
-    def send(self, text: str, *, reply: Message=None, html=False, markdown=False):
+    def send(self, text: str='', *, reply: Message=None, html=False, markdown=False, photo=None):
         parse_mode = None
         if html:
             parse_mode = ParseMode.HTML
@@ -25,6 +26,10 @@ class Context:
             parse_mode = ParseMode.MARKDOWN_V2
         if reply:
             reply = reply.message_id
+        
+        if photo:
+            return self.me.send_photo(self.channel.id, photo=photo, caption=text, parse_mode=parse_mode, reply_to_message_id=reply)
+
         return self.me.send_message(self.channel.id, text=text, parse_mode=parse_mode, reply_to_message_id=reply)
 
     def reply(self, text: str, **kwargs):
