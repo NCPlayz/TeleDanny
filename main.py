@@ -1,42 +1,58 @@
-# TODO: migrate over to new framework
-from telegram.ext import Updater, CommandHandler
+import random
 
-from config import token
+from framework import Bot, Context
 
-updater = Updater(token=token, use_context=True)
+from config import token, owners
 
-dispatcher = updater.dispatcher
+bot = Bot(token=token, owners=owners)
 
-import logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                     level=logging.INFO)
+@bot.command()
+def hello(ctx: Context):
+    ctx.reply("Hello! I'm a robot! NCPlayz and Ilya made me.")
 
+@bot.command(owner_only=True)
+def eval(ctx: Context):
+    ctx.send('super secret data shh')
 
-def hello(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Hello! I'm a robot! Danny#0007 made me.")
-
-start_handler = CommandHandler('hello', hello)
-dispatcher.add_handler(start_handler)
+@bot.command(owner_only=True)
+def add_owner(ctx: Context):
+    bot.owners.append(int(ctx.args[0]))
+    ctx.send('added to owner list.')
 
 tags = {
-    'ayysyncio': 'https://cdn.discordapp.com/attachments/84319995256905728/360193276004794378/unknown.png'
+    'zws': 'Zero Width Samus',
+    'ayysyncio': 'https://cdn.discordapp.com/attachments/84319995256905728/360193276004794378/unknown.png',
 }
 
-def tag(update, context):
-    if len(context.args) == 1:
-        try:
-            context.bot.send_message(chat_id=update.effective_chat.id, text=tags[context.args[0]])
-        except:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='Tag not found.')
-    elif context.args[0] == 'create':
-        name = context.args[1]
-        content = context.args[2:]
+# TODO: Move to a db (sqlite?)
+
+@bot.command()
+def tag(ctx: Context):
+    if not ctx.args:
+        return
+    
+    try:
+        ctx.send(tags[ctx.args[0]])
+    except:
+        ctx.send('Tag not found.')
+
+@bot.command()
+def tag_create(ctx: Context):
+    if not ctx.args:
+        return
+    
+    if len(ctx.args) > 1:
+        name, content = ctx.args[0], ctx.args[1:]
         if name in tags:
-            return context.bot.send_message(chat_id=update.effective_chat.id, text=f'Tag {name} already exists.')
-        tags[name] = ' '.join(content)
-        context.bot.send_message(chat_id=update.effective_chat.id, text=f'Tag {name} successfully created.')
+            ctx.send(f'Tag {name} already exists.')
+        else:
+            tags[name] = ' '.join(content)
+            ctx.send(f'Tag {name} successfully created.')
 
-tag_handler = CommandHandler('tag', tag)
-dispatcher.add_handler(tag_handler)
+@bot.command()
+def choose(ctx: Context):
+    choices = ctx.args
+    chosen = random.choice(choices)
+    ctx.send(f'```{chosen}```', markdown=True)
 
-updater.start_polling()
+bot.run()
