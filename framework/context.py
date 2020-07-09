@@ -1,6 +1,6 @@
 import typing
 
-from telegram import Update, Message, Chat, User, Bot, ParseMode
+from telegram import Update, Message, Chat, User, Bot, ParseMode, error
 from telegram.ext import CallbackContext
 
 
@@ -28,7 +28,11 @@ class Context:
             reply = reply.message_id
         
         if photo:
-            return self.me.send_photo(self.channel.id, photo=photo, caption=text, parse_mode=parse_mode, reply_to_message_id=reply)
+            try:
+                return self.me.send_photo(self.channel.id, photo=photo, caption=text, parse_mode=parse_mode, reply_to_message_id=reply)
+            except error.BadRequest:
+                photo.seek(0)
+                return self.me.send_document(self.channel.id, document=photo, filename='photo.png', caption=text, parse_mode=parse_mode, reply_to_message_id=reply)
 
         return self.me.send_message(self.channel.id, text=text, parse_mode=parse_mode, reply_to_message_id=reply)
 

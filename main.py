@@ -1,16 +1,18 @@
 import random
 import re
 import io
+import sys
 
 from framework import Bot, Context
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name, ClassNotFound
 from pygments.formatters.img import ImageFormatter
+from pygments.styles.paraiso_dark import ParaisoDarkStyle
 
 from config import token, owners
 
-CODEBLOCK_REGEX = re.compile(r'/codeblock (\w+)((?:.|\n)+)')
+CODEBLOCK_REGEX = re.compile(r'/codeblock\s*(\w+)((?:.|\n)+)')
 
 bot = Bot(token=token, owners=owners)
 
@@ -21,6 +23,11 @@ def hello(ctx: Context):
 @bot.command(owner_only=True)
 def eval(ctx: Context):
     ctx.send('super secret data shh')
+
+@bot.command(owner_only=True)
+def exit(ctx: Context):
+    ctx.send('Botto Ded. x.x')
+    sys.exit(-1)
 
 @bot.command(owner_only=True)
 def add_owner(ctx: Context):
@@ -77,7 +84,12 @@ def codeblock(ctx: Context):
         except ClassNotFound:
             return ctx.send('Language could not be recognised.')
 
-        formatter = ImageFormatter(image_format="PNG")
+        formatter = ImageFormatter(image_format="PNG",
+            font_size=24,
+            style=ParaisoDarkStyle,
+            line_number_bg=0x261825,
+            font_name="JetBrains Mono",
+        )
 
         file = io.BytesIO()
         result = highlight(match.group(2), lexer, formatter, outfile=file)
