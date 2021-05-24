@@ -9,7 +9,7 @@ class Bot:
         self.owners = owners
         self.commands = {}
         self._handlers = []
-    
+
     def command(self, *, owner_only=False):
         def wrap(func):
             cmd = Command(self, func, owner_only=owner_only)
@@ -24,3 +24,4 @@ class Bot:
             self.dispatcher.add_handler(ch)
 
         self.updater.start_polling()
+        self.updater.idle()

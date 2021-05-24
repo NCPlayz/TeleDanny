@@ -12,27 +12,32 @@ from pygments.styles.paraiso_dark import ParaisoDarkStyle
 
 from config import token, owners
 
-CODEBLOCK_REGEX = re.compile(r'/codeblock\s*(\w+)((?:.|\n)+)')
+CODEBLOCK_REGEX = re.compile(r'/codeblock(?:@rdannybot)?\s*(\w+)((?:.|\n)+)')
 
 bot = Bot(token=token, owners=owners)
+
 
 @bot.command()
 def hello(ctx: Context):
     ctx.reply("Hello! I'm a robot! NCPlayz and Ilya made me.")
 
+
 @bot.command(owner_only=True)
 def eval(ctx: Context):
     ctx.send('super secret data shh')
+
 
 @bot.command(owner_only=True)
 def exit(ctx: Context):
     ctx.send('Botto Ded. x.x')
     sys.exit(-1)
 
+
 @bot.command(owner_only=True)
 def add_owner(ctx: Context):
     bot.owners.append(int(ctx.args[0]))
     ctx.send('added to owner list.')
+
 
 tags = {
     'zws': 'Zero Width Samus',
@@ -41,21 +46,23 @@ tags = {
 
 # TODO: Move to a db (sqlite?)
 
+
 @bot.command()
 def tag(ctx: Context):
     if not ctx.args:
-        return
-    
+        return ctx.send("Expected argument 'name'.")
+
     try:
         ctx.send(tags[ctx.args[0]])
     except:
         ctx.send('Tag not found.')
 
+
 @bot.command()
 def tag_create(ctx: Context):
     if not ctx.args:
-        return
-    
+        return ctx.send("Expected arguments 'name' and 'content'.")
+
     if len(ctx.args) > 1:
         name, content = ctx.args[0], ctx.args[1:]
         if name in tags:
@@ -64,11 +71,11 @@ def tag_create(ctx: Context):
             tags[name] = ' '.join(content)
             ctx.send(f'Tag {name} successfully created.')
 
+
 @bot.command(owner_only=True)
 def tag_delete(ctx: Context):
     if not ctx.args:
-        return
-    
+        return ctx.send("Expected argument 'name'.")
 
     toDelete = ctx.args[0]
 
@@ -78,11 +85,15 @@ def tag_delete(ctx: Context):
         tags.pop(toDelete)
         ctx.send(f'Tag {toDelete} successfully deleted.')
 
+
 @bot.command()
 def choose(ctx: Context):
     choices = ctx.args
+    if len(choices) < 2:
+        return ctx.send('Expected at least two choices.')
     chosen = random.choice(choices)
     ctx.send(f'```{chosen}```', markdown=True)
+
 
 @bot.command()
 def codeblock(ctx: Context):
@@ -92,25 +103,37 @@ def codeblock(ctx: Context):
 
     match = CODEBLOCK_REGEX.search(content)
 
-    if match:
-        try:
-            lexer = get_lexer_by_name(match.group(1), stripall=True)
-        except ClassNotFound:
-            return ctx.send('Language could not be recognised.')
-
-        formatter = ImageFormatter(image_format="PNG",
-            font_size=24,
-            style=ParaisoDarkStyle,
-            line_number_bg=0x261825,
-            font_name="JetBrains Mono Regular",
-        )
-
-        file = io.BytesIO()
-        result = highlight(match.group(2), lexer, formatter, outfile=file)
-
-        file.seek(0)
-        ctx.send(photo=file)
-    else:
+    if not match:
         return ctx.send('Could not recognise content.')
+
+    try:
+        lexer = get_lexer_by_name(match.group(1), stripall=True)
+    except ClassNotFound:
+        return ctx.send('Language could not be recognised.')
+
+    formatter = ImageFormatter(
+        image_format="PNG",
+        font_size=24,
+        style=ParaisoDarkStyle,
+        line_number_bg=0x261825,
+        font_name="JetBrains Mono Regular",
+    )
+
+    file = io.BytesIO()
+    highlight(match.group(2), lexer, formatter, outfile=file)
+
+    file.seek(0)
+    ctx.send(photo=file)
+
+
+@bot.command()
+def shrug(ctx: Context):
+    ctx.reply(r'¯\_(ツ)_/¯')
+
+
+@bot.command()
+def tableflip(ctx: Context):
+    ctx.reply('(╯°□°）╯︵ ┻━┻')
+
 
 bot.run()
