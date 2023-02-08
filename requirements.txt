@@ -1,5 +1,5 @@
 cffi==1.14.0
-cryptography==3.3.2
+cryptography==39.0.1
 decorator==4.4.2
 Pillow==8.3.2
 pycparser==2.20
